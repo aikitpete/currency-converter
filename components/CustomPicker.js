@@ -1,14 +1,14 @@
 import React, { Component } from 'react';
 import { View, Text, Picker, StyleSheet } from 'react-native'
 
-class PickerExample extends Component {
+export default class CustomPicker extends Component {
    render() {
       return (
          <View style={styles.container}>
             <Picker selectedValue = {this.props.value} onValueChange = {this.props.callback}>
             {this.props.values.map((value, key) => {
                return (
-                 <Picker.Item label={value} value={value} />
+                 <Picker.Item label={value} value={value} key={key}/>
                );
             })}
             </Picker>
@@ -16,7 +16,6 @@ class PickerExample extends Component {
       )
    }
 }
-export default PickerExample
 
 const styles = StyleSheet.create({
   container: {

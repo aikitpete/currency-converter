@@ -1,6 +1,7 @@
 import React from 'react';
-import { StyleSheet, Text, View, Picker, TextInput } from 'react-native';
-import CurrencyPicker from './components/CurrencyPicker';
+import { StyleSheet, Text, View, Picker, TextInput, TouchableOpacity } from 'react-native';
+import CurrencyConverter from './components/CurrencyConverter';
+import CustomPicker from './components/CustomPicker';
 import ApiService from './services/ApiService';
 import ConversionService from './services/ConversionService';
 
@@ -13,16 +14,24 @@ export default class App extends React.Component {
     this.apiService = new ApiService();
     this.conversionService = new ConversionService();
 
-    var data = this.apiService.fetchData();
+    this.apiService.fetchData()
+      .then((responseJson) => {
+        this.conversionService.updateData(responseJson);
+        const baseCurrency = this.conversionService.getCurrenciesWithBase()[0];
+        console.log("Base currency",baseCurrency);
+        this.setState({
+          fromCurrency: baseCurrency,
+          toCurrency: baseCurrency,
+        });
+      }).catch((error) => {
+        console.error(error);
+      });
 
-    this.conversionService.updateData(data);
-
-    console.log("DATA",this.data,"RATES",this.rates);
     this.state = {
-      fromCurrency: this.conversionService.getCurrenciesWithBase()[0],
+      fromCurrency: "n/a",
       fromValue: defaultValue,
       toValue: defaultValue,
-      toCurrency: this.conversionService.getCurrenciesWithBase()[0]
+      toCurrency: "n/a"
     };
   }
   updateFromValue(newFromValue) {
@@ -52,39 +61,31 @@ export default class App extends React.Component {
         <View  style={styles.topContainer}>
         </View>
         <View style={styles.middleContainer}>
-          <View style={styles.currencyDisplay}>
-            <View style={styles.resultBox}>
-              <TextInput
-                style={[styles.mainText, styles.inputBox]}
-                value={this.state.fromValue.toFixed(2)}
-              >
-              </TextInput>
+          {this.conversionService.getCurrenciesWithBase().length>0 &&
+            <CurrencyConverter
+              style={styles.middleContainer}
+              fromCurrency={this.state.fromCurrency}
+              fromValue={this.state.fromValue}
+              toValue={this.state.toValue}
+              toCurrency={this.state.toCurrency}
+            />
+          }
+          {this.conversionService.getCurrenciesWithBase().length==0 &&
+            <View
+              style={styles.middleContainer}
+            >
+              <Text>Data not loaded.</Text>
+              <TouchableOpacity style={styles.button}><Text style={styles.buttonText}>Retry</Text></TouchableOpacity>
             </View>
-            <View style={styles.resultBox}>
-              <Text
-                style={styles.mainText}
-                adjustsFontSizeToFit={true}
-                numberOfLines={1}
-              >{this.state.fromCurrency}
-              </Text>
-            </View>
-          </View>
-          <View style={styles.currencyDisplay}>
-            <View style={styles.resultBox}>
-              <Text style={styles.mainText}>{this.state.toValue.toFixed(2)}</Text>
-            </View>
-            <View style={styles.resultBox}>
-              <Text style={styles.mainText}>{this.state.toCurrency}</Text>
-            </View>
-          </View>
+          }
         </View>
         <View style={styles.bottomContainer}>
-          <CurrencyPicker
+          <CustomPicker
             value={this.state.fromCurrency}
             values={this.conversionService.getCurrenciesWithBase()}
             callback={this.updateFromCurrency.bind(this)}
           />
-          <CurrencyPicker
+        <CustomPicker
             value={this.state.toCurrency}
             values={this.conversionService.getCurrenciesWithBase()}
             callback={this.updateToCurrency.bind(this)}
@@ -114,7 +115,8 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
     backgroundColor: 'white',
-    alignItems: 'stretch',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   bottomContainer: {
     flex: 1,
@@ -123,26 +125,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  currencyDisplay: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'stretch',
-  },
-  resultBox: {
-    flex: 1,
-    flexDirection: 'column',
-    alignItems: 'stretch',
+  button: {
+    width:200,
+    height:50,
+    color:'white',
+    alignItems: 'center',
     justifyContent: 'center',
-    borderColor: 'gray',
-    borderWidth: 1,
-    borderRadius: 0
   },
-  mainText: {
-    fontSize: 40,
-    color: 'blue',
-    textAlign: 'center',
-    textAlignVertical: 'center',
-  },
-  inputBox: {
+  buttonText: {
+    color:'blue',
+    fontSize: 30,
   }
 });

@@ -1,17 +1,19 @@
 export default class ConversionService {
   updateData(newData) {
     this.data = newData;
-    this.def = this.data.default;
-    this.rates = this.def.rates;
+    this.rates = this.data.rates;
     this.currencies = this.rates.map(value=>value.currency);
     this.ratesToBase = this.rates.map(value=>value.rate);
   }
   getCurrenciesWithBase() {
-    return [this.def.base, ...this.currencies];
+    //console.log("this.def",this.currencies, this.def)
+    if (!this.data || !this.data.base || !this.currencies) {
+      return [];
+    }
+    return [this.data.base, ...this.currencies];
   }
   getRateForCurrency(currency) {
     for (var i=0; i<this.currencies.length;i++) {
-      console.log("COMPARING",this.currencies[i],currency)
       if (this.currencies[i]==currency) {
         return this.ratesToBase[i]
       }
