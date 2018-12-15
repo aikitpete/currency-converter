@@ -1,9 +1,10 @@
 import React from 'react';
-import { StyleSheet, Text, View, Picker, TextInput, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, Picker, TextInput, TouchableOpacity, AppState } from 'react-native';
 import CurrencyConverter from './components/CurrencyConverter';
 import CustomPicker from './components/CustomPicker';
 import ApiService from './services/ApiService';
 import ConversionService from './services/ConversionService';
+import StorageService from './services/StorageService';
 
 const defaultValue = 1;
 
@@ -13,31 +14,72 @@ export default class App extends React.Component {
 
     this.apiService = new ApiService();
     this.conversionService = new ConversionService();
-
-    this.apiService.fetchData()
-      .then((responseJson) => {
-        this.conversionService.updateData(responseJson);
-        const baseCurrency = this.conversionService.getCurrenciesWithBase()[0];
-        console.log("Base currency",baseCurrency);
-        this.setState({
-          fromCurrency: baseCurrency,
-          toCurrency: baseCurrency,
-        });
-      }).catch((error) => {
-        console.error(error);
-      });
+    this.storageService = new StorageService();
 
     this.state = {
       fromCurrency: "n/a",
       fromValue: defaultValue,
       toValue: defaultValue,
-      toCurrency: "n/a"
+      toCurrency: "n/a",
+      statusText: "",
+      appState: AppState.currentState,
     };
   }
+  componentWillMount() {
+    this.reloadData();
+  }
+  componentDidMount() {
+    AppState.addEventListener('change', this._handleAppStateChange);
+  }
+  componentWillUnmount() {
+    AppState.removeEventListener('change', this._handleAppStateChange);
+  }
+  _handleAppStateChange = (nextAppState) => {
+    if (this.state.appState.match(/inactive|background/) && nextAppState === 'active') {
+      console.log('App has come to the foreground!')
+      this.reloadData();
+    }
+    this.setState({appState: nextAppState});
+  }
+  reloadData() {
+    this.setState({
+      statusText: "Loading data..."
+    });
+    this.apiService.fetchData()
+      .then((responseJson) => {
+        this.storageService.storeData(responseJson);
+        this.processNewData(responseJson);
+      }).catch((error) => {
+        console.error(error);
+
+        // Retrieve previously stored data
+        this.storageService.retrieveData().then((responseJson)=>{
+          if (responseJson) { // If returned data is not empty
+            this.processNewData(responseJson);
+          }
+        });
+
+      });
+  }
+  processNewData(responseJson) {
+    this.conversionService.updateData(responseJson);
+    const baseCurrency = this.conversionService.getCurrenciesWithBase()[0];
+    console.log("Base currency",baseCurrency);
+    this.setState({
+      fromCurrency: baseCurrency,
+      toCurrency: baseCurrency,
+      statusText: "",
+    });
+  }
   updateFromValue(newFromValue) {
+    if (isNaN(newFromValue)==true) {
+      this.setState({
+        fromValue: this.state.fromValue,
+      })
+    }
     const newToValue = this.conversionService.convert(this.state.fromCurrency, this.state.toCurrency, newFromValue);
     this.setState({
-      fromValue: value,
+      fromValue: newFromValue,
       toValue: newToValue,
     })
   }
@@ -68,6 +110,7 @@ export default class App extends React.Component {
               fromValue={this.state.fromValue}
               toValue={this.state.toValue}
               toCurrency={this.state.toCurrency}
+              fromValueChanged={this.updateFromValue.bind(this)}
             />
           }
           {this.conversionService.getCurrenciesWithBase().length==0 &&
@@ -79,6 +122,7 @@ export default class App extends React.Component {
             </View>
           }
         </View>
+        <Text style={styles.statusText}>{this.state.statusText}</Text>
         <View style={styles.bottomContainer}>
           <CustomPicker
             value={this.state.fromCurrency}
@@ -135,5 +179,8 @@ const styles = StyleSheet.create({
   buttonText: {
     color:'blue',
     fontSize: 30,
+  },
+  statusText: {
+    textAlign:'center',
   }
 });
