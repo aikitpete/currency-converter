@@ -40,6 +40,3 @@ This is a straightforward mobile engineering sample that demonstrates:
 - local persistence fallback
 - separation between UI and service logic
 - practical state management in a small app
-
-## Status
-Prototype / learning project.
