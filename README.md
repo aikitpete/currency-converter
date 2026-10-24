@@ -1,42 +1,35 @@
-# currency-converter
+# Currency converter
 
-A simple React Native / Expo mobile app for converting currencies with live exchange-rate data and offline fallback support.
+React Native (Expo) app that converts between currencies using daily ECB reference rates and keeps working offline.
 
-## What it does
-The app lets a user:
+[![CI](https://github.com/aikitpete/currency-converter/actions/workflows/ci.yml/badge.svg)](https://github.com/aikitpete/currency-converter/actions/workflows/ci.yml)
 
-- choose source and target currencies,
-- enter an amount,
-- fetch exchange-rate data,
-- convert values in the UI,
-- reuse previously stored data if the latest API request fails.
+## Features
 
-## Repository structure
-- `App.js` – main application flow and state handling
-- `components/` – UI pieces such as converter/picker components
-- `services/` – API, conversion, and storage services
-- `data/` – local data helpers
-- `assets/` – app assets
+- Rates for the ECB reference currencies from the [Frankfurter API](https://frankfurter.dev) (ECB reference rates, updated each working day, no API key).
+- Every successful response is saved on the device. If the next request fails or times out, the app shows the saved rates and says so, together with their date.
+- Refreshes when the app returns to the foreground.
+- Tolerant amount input: `1234.50`, `1,234.50` and `12,5` all work.
 
-## Tech
-- React Native
-- Expo
-- JavaScript
+## Structure
 
-## How it works
-On startup, the app fetches exchange-rate data through an API service.  
-If fresh data cannot be loaded, it falls back to previously stored data so the app remains usable.  
-Conversion logic is separated into dedicated services instead of being buried directly inside the UI.
+| File | Purpose |
+|---|---|
+| `App.js` | UI and state (hooks) |
+| `src/rates.js` | Parsing, conversion and formatting; pure functions |
+| `src/ratesService.js` | Live fetch with timeout and storage fallback; dependencies are injected so it is testable |
+| `tests/` | Jest tests for both modules (network failure, bad payloads, corrupt cache, input parsing) |
 
-## Run locally
+Conversion goes through the base currency: `amount / rate(from) * rate(to)`.
+
+## Run
+
 ```bash
 npm install
-npm start
+npm start        # then open in Expo Go, or press a / i / w
+npm test
 ```
 
-## Why this repo is useful
-This is a straightforward mobile engineering sample that demonstrates:
-- API integration
-- local persistence fallback
-- separation between UI and service logic
-- practical state management in a small app
+Built with Expo SDK 58 (React Native 0.88, React 19).
+
+MIT licence.
