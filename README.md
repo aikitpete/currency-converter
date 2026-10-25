@@ -1,8 +1,8 @@
 # Currency converter
 
-React Native (Expo) app that converts between currencies using daily ECB reference rates and keeps working offline.
+[![CI](https://img.shields.io/github/actions/workflow/status/aikitpete/currency-converter/ci.yml?branch=master&label=CI)](https://github.com/aikitpete/currency-converter/actions/workflows/ci.yml) [![License](https://img.shields.io/github/license/aikitpete/currency-converter)](LICENSE) ![Expo](https://img.shields.io/badge/Expo-000020?logo=expo&logoColor=white) ![React](https://img.shields.io/badge/React-20232A?logo=react&logoColor=61DAFB) ![Jest](https://img.shields.io/badge/Jest-C21325?logo=jest&logoColor=white)
 
-[![CI](https://github.com/aikitpete/currency-converter/actions/workflows/ci.yml/badge.svg)](https://github.com/aikitpete/currency-converter/actions/workflows/ci.yml)
+React Native (Expo) app that converts between currencies using daily ECB reference rates and keeps working offline.
 
 ## Features
 
